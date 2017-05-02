@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Leaflet Test</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+   <style>
+    body { margin: 0; padding: 0; font-family: sans-serif; }
+    html, body, #map { height: 100vh; width: 100vw; }
+   </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+
+  <script type="text/javascript">
+  // initialize the map
+  var map = L.map('map').setView([39.7392, -104.9903], 13);
+
+
+  // load a tile layer
+  L.tileLayer('https://api.mapbox.com/styles/v1/{id}/cj20q0wg8001w2rr2fmacg5m0/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        // maxZoom: 18,
+        // minZoom: 12,
+        id: 'stumblingrumblin',
+        accessToken: 'pk.eyJ1Ijoic3R1bWJsaW5ncnVtYmxpbiIsImEiOiJjajIwb3VmYm0wNGFhMnFueXJwbXYzN3ZpIn0.e6EgMW9eO3c58dKT3NPkGg'
+      }).addTo(map);
+
+      var geojsonFeature = {
+          "type": "Feature",
+          "properties": {
+              "name": "Coors Field",
+              "amenity": "Baseball Stadium",
+              "popupContent": "This is where the Rockies play!"
+          },
+          "geometry": {
+              "type": "Point",
+              "coordinates": [-104.99404, 39.75621]
+          }
+      };
+    L.geoJson(geojsonFeature).addTo(map)
+
+    var states = [{
+      "type": "Feature",
+      "properties": {"party": "Republican"},
+      "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+              [-104.05, 48.99],
+              [-97.22,  48.98],
+              [-96.58,  45.94],
+              [-104.03, 45.94],
+              [-104.05, 48.99]
+          ]]
+      }
+    }, {
+        "type": "Feature",
+        "properties": {"party": "Democrat"},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+                [-109.05, 41.00],
+                [-102.06, 40.99],
+                [-102.03, 36.99],
+                [-109.04, 36.99],
+                [-109.05, 41.00]
+            ]]
+        }
+    }];
+
+    L.geoJson(states, {
+        style: function(feature) {
+            switch (feature.properties.party) {
+                case 'Republican': return {color: "#ff0000"};
+                case 'Democrat':   return {color: "#0000ff"};
+            }
+        }
+    }).addTo(map);
+
+    function onEachFeature(feature, layer) {
+    // does this feature have a property named popupContent?
+    if (feature.properties && feature.properties.popupContent) {
+        layer.bindPopup(feature.properties.popupContent);
+    }
+}
+
+  var geojsonFeature = {
+      "type": "Feature",
+      "properties": {
+          "name": "Coors Field",
+          "amenity": "Baseball Stadium",
+          "popupContent": "This is where the Rockies play!"
+      },
+      "geometry": {
+          "type": "Point",
+          "coordinates": [-104.99404, 39.75621]
+      }
+  };
+
+  L.geoJson(geojsonFeature, {
+      onEachFeature: onEachFeature
+  }).addTo(map);
+  </script>
+</html>
