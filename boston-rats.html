@@ -4,8 +4,11 @@
     <meta charset="utf-8">
     <title>Boston Rats</title>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+    <link rel="stylesheet" href="markerCluster.css">
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="leaflet.markercluster.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
    <style>
     body { margin: 0; padding: 0; font-family: sans-serif; }
     html, body, #map { height: 100vh; width: 100vw; }
@@ -16,28 +19,82 @@
   </body>
 
   <script type="text/javascript">
-  // initialize the map
-  const map = L.map('map').setView([42.35, -71.08], 13);
+    // initialize the map
+    const map = L.map('map').setView([42.35, -71.08], 13);
 
-  // load a tile layer
-  L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png',
-    {
-      attribution: 'Tiles by <a href="http://mapc.org">MAPC</a>, Data by <a href="http://mass.gov/mgis">MassGIS</a>',
-      maxZoom: 17,
-      minZoom: 9
-    }).addTo(map);
+    // load a tile layer
+    L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png',
+      {
+        attribution: 'Tiles by <a href="http://mapc.org">MAPC</a>, Data by <a href="http://mass.gov/mgis">MassGIS</a>',
+        maxZoom: 17,
+        minZoom: 9
+      }).addTo(map);
 
-    // bike lanes
-  // L.tileLayer('http://tiles.mapc.org/trailmap-onroad/{z}/{x}/{y}.png',
-  // {
-  //   maxZoom: 17,
-  //   minZoom: 9
-  // }).addTo(map);
+      // bike lanes
+      L.tileLayer('http://tiles.mapc.org/trailmap-onroad/{z}/{x}/{y}.png',
+      {
+        maxZoom: 17,
+        minZoom: 9
+      }).addTo(map);
 
-  // load GeoJSON from an external file
-  $.getJSON("rodents.geojson",function(data){
-    // add GeoJSON layer to the map once the file is loaded
-    L.geoJson(data).addTo(map);
-  });
+    // load GeoJSON from an external file
+    // $.getJSON("data/rodents.geojson", (data) => L.geoJson(data).addTo(map))
+
+    // Load Hood Data
+    $.getJSON("data/neighborhoods.geojson", (hoodData) => {
+      L.geoJson(hoodData, {
+        style: (feature) => {
+          let fillColor
+          const density = feature.properties.density
+          if (density > 80) {
+            fillColor = "#006837"
+          } else if (density > 40) {
+            fillColor = "#31a354"
+          } else if (density > 20) {
+            fillColor = "#78c679"
+          } else if (density > 10) {
+            fillColor = "#c2e699"
+          } else if (density > 0) {
+            fillColor = "#ffffcc"
+          } else {
+            fillColor = "#f7f7f7"
+          }
+
+          return { color: "#999", weight: 1, fillColor, fillOpacity: .6 }
+        },
+
+        onEachFeature: (feature, layer) => {
+          const name = feature.properties.Name
+          const density = feature.properties.density
+          layer.bindPopup(`<strong>${name}</strong><br/>${density} rats per square mile`)
+        }
+      }).addTo(map)
+    })
+
+    // Load Rodent data with custom icons
+    $.getJSON("data/rodents.geojson", (data) => {
+      const ratIcon = L.icon({
+        iconUrl: 'rat.png',
+        iconSize: [60, 50]
+      })
+
+      // L.geoJson(data, {
+      //   pointToLayer: (feature, latlng) => {
+      //     return L.marker(latlng, {icon: ratIcon})
+      //   }
+      // }).addTo(map)
+
+      const rodents = L.geoJson(data, {
+        pointToLayer: (feature, latlng) => {
+          const marker = L.marker(latlng, {icon: ratIcon})
+          marker.bindPopup(feature.properties.Location + '<br/>' + feature.properties.OPEN_DT)
+          return marker
+        }
+      })
+      const clusters = L.markerClusterGroup();
+      clusters.addLayer(rodents);
+      map.addLayer(clusters);
+    });
+
   </script>
 </html>
